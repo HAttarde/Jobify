@@ -1,0 +1,8 @@
+flask
+flask-cors
+python-dotenv
+crewai
+requests
+pydantic
+crewai-tools
+
