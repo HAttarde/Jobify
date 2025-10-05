@@ -68,3 +68,20 @@ Backend API: http://localhost:5001
 ├── docker-compose.yml
 └── .env
 ```
+---
+## Technologies & Services
+
+- **CrewAI** - Multi-agent orchestration framework
+- **Google Gemini** - Large language model for content generation
+- **Hunter.io** - Professional email discovery and verification
+- **React** - Frontend framework
+- **Flask** - Backend web framework
+- **Docker** - Containerization platform
+
+---
+
+
+## 👤 Author
+
+**Hrushikesh Attarde**  
+[LinkedIn](https://www.linkedin.com/in/hrushikesh-attarde) · [GitHub](https://github.com/HAttarde)
