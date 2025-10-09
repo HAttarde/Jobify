@@ -59,12 +59,12 @@ def find_contacts_hunter(company_name, role, limit=10):
     # If user already provided a domain (contains .), use it directly
     if "." in company_name and len(company_name.split(".")) > 1:
         company_domain = company_name.lower().strip()
-        print(f"🔍 Using provided domain: {company_domain}")
+        print(f"🔗 Using provided domain: {company_domain}")
     else:
         # Try to find the domain dynamically
         print(f"🔍 Looking up domain for: {company_name}")
         company_domain = get_company_domain(company_name, hunter_api_key)
-        print(f"🔍 Resolved to domain: {company_domain}")
+        print(f"🔗 Resolved to domain: {company_domain}")
     
     # Hunter.io Domain Search endpoint
     url = "https://api.hunter.io/v2/domain-search"
@@ -98,7 +98,7 @@ def find_contacts_hunter(company_name, role, limit=10):
         
         if department:
             params['department'] = department
-            print(f"🔍 Filtering by department: {department}")
+            print(f"🎯 Filtering by department: {department}")
     
     try:
         print(f"🌐 Making API request to Hunter.io...")
@@ -169,6 +169,7 @@ def find_contacts_hunter(company_name, role, limit=10):
                     print(f"[{len(contacts)}] {name}")
                     print(f"     Title: {title}")
                     print(f"     Email: {email}")
+                    print(f"     LinkedIn: {linkedin_url}")
                     print(f"     Confidence: {confidence}%")
                     print()
             
@@ -207,9 +208,10 @@ def construct_linkedin_url(name):
 def create_outreach_task(agent, company_name, role, user_resume):
     """
     Creates an outreach task with REAL contacts from Hunter.io
+    Agent will scrape LinkedIn profiles for personalization
     """
     print("\n" + "="*70)
-    print("🚀 CREATING OUTREACH TASK")
+    print("🚀 CREATING OUTREACH TASK WITH LINKEDIN SCRAPING")
     print("="*70)
     
     # Get real contacts using Hunter.io
@@ -233,6 +235,7 @@ def create_outreach_task(agent, company_name, role, user_resume):
     print("="*70)
     for i, c in enumerate(contacts, 1):
         print(f"{i}. {c['name']:25} | {c['email']:30} | {c['title'][:40]}")
+        print(f"   LinkedIn: {c['linkedin']}")
     print("="*70 + "\n")
     
     contacts_json_str = json.dumps(contacts, indent=2)
@@ -240,51 +243,78 @@ def create_outreach_task(agent, company_name, role, user_resume):
     return Task(
         description=(
             f"="*70 + "\n"
-            f"MANDATORY: USE THESE EXACT CONTACTS (Real data from Hunter.io)\n"
+            f"STEP 1: SCRAPE LINKEDIN PROFILES\n"
             f"="*70 + "\n"
+            f"You have {len(contacts)} REAL contacts (from Hunter.io).\n"
+            f"For EACH contact with a LinkedIn URL, use the ScrapeWebsiteTool to scrape their profile.\n"
+            f"Extract key information:\n"
+            f"- Current role and responsibilities\n"
+            f"- Previous experience and career path\n"
+            f"- Skills and expertise areas\n"
+            f"- Education background\n"
+            f"- Recent posts or activities (if available)\n"
+            f"- Any shared interests or connections\n\n"
+            f"CONTACTS TO RESEARCH:\n"
             f"{contacts_json_str}\n\n"
             f"="*70 + "\n"
-            f"CANDIDATE'S RESUME:\n"
+            f"STEP 2: ANALYZE CANDIDATE'S RESUME\n"
             f"="*70 + "\n"
             f"{user_resume}\n\n"
             f"="*70 + "\n"
-            f"INSTRUCTIONS:\n"
+            f"STEP 3: FIND CONNECTION POINTS\n"
             f"="*70 + "\n"
-            f"You have {len(contacts)} REAL contacts above (from Hunter.io).\n"
-            f"Write personalized LinkedIn notes and emails for EACH contact.\n\n"
-            f"For EACH contact:\n"
-            f"1. Use exact name, email, linkedin, and title from above\n"
-            f"2. LinkedIn connection note (under 300 characters):\n"
-            f"   - Mention their specific role\n"
-            f"   - Connect to candidate's relevant experience\n"
-            f"   - Warm and professional tone\n"
-            f"3. Cold email:\n"
-            f"   - Attention-grabbing subject line\n"
+            f"For each contact, identify:\n"
+            f"- Shared skills or technologies\n"
+            f"- Similar career paths or interests\n"
+            f"- Relevant projects from candidate's resume that match contact's work\n"
+            f"- Common educational background or certifications\n"
+            f"- Industry trends or challenges they both care about\n\n"
+            f"="*70 + "\n"
+            f"STEP 4: WRITE PERSONALIZED MESSAGES\n"
+            f"="*70 + "\n"
+            f"For EACH contact, write:\n\n"
+            f"1. LinkedIn connection note (under 300 characters):\n"
+            f"   - Reference something SPECIFIC from their LinkedIn profile\n"
+            f"   - Mention a genuine connection point with candidate's background\n"
+            f"   - Keep it warm, professional, and authentic\n"
+            f"   - Example: 'Hi [Name], saw your work on [specific project/skill]. I've been "
+            f"working on similar challenges with [relevant candidate experience]. Would love to connect!'\n\n"
+            f"2. Cold email:\n"
+            f"   - Compelling subject line that references their work\n"
             f"   - Personalized greeting using their name\n"
-            f"   - Reference their role and company\n"
-            f"   - Highlight 2-3 relevant candidate skills\n"
-            f"   - Request brief informational chat (15-20 min)\n"
-            f"   - Professional signature with candidate's name\n\n"
-            f"CRITICAL:\n"
+            f"   - First paragraph: Reference specific detail from their LinkedIn (project, post, skill)\n"
+            f"   - Second paragraph: Connect it to candidate's relevant experience (2-3 specific skills/projects)\n"
+            f"   - Third paragraph: Clear ask for 15-20 min informational chat\n"
+            f"   - Professional signature with candidate's name from resume\n\n"
+            f"CRITICAL RULES:\n"
             f"- Output exactly {len(contacts)} contacts\n"
-            f"- Do NOT modify names, emails, or LinkedIn URLs\n"
-            f"- Extract candidate's name from resume\n"
-            f"- Make each message unique\n"
+            f"- Use EXACT names, emails, titles, and LinkedIn URLs from input\n"
+            f"- Do NOT modify any contact information\n"
+            f"- Base personalization on ACTUAL scraped LinkedIn data\n"
+            f"- If scraping fails for a profile, use their title and company for personalization\n"
+            f"- Make each message unique based on their specific background\n"
+            f"- Extract candidate's name from resume for email signatures\n"
         ),
         expected_output=(
             f"A JSON array with EXACTLY {len(contacts)} objects.\n\n"
-            "Format (raw JSON, no markdown):\n"
+            "Format (raw JSON, no markdown code blocks):\n"
             "[\n"
             "  {\n"
             '    "name": "exact name from input",\n'
             '    "title": "exact title from input",\n'
-            '    "linkedin": "exact URL from input",\n'
+            '    "linkedin": "exact LinkedIn URL from input",\n'
             '    "email": "exact email from input",\n'
-            '    "linkedin_note": "personalized note under 300 chars",\n'
-            '    "cold_email": "Subject: ...\\n\\nDear [Name],\\n\\n..."\n'
+            '    "linkedin_profile_summary": "brief summary of key findings from their profile (2-3 sentences)",\n'
+            '    "connection_points": "specific connections between their profile and candidate background",\n'
+            '    "linkedin_note": "personalized note under 300 chars referencing their profile",\n'
+            '    "cold_email": "Subject: [compelling subject]\\n\\nDear [Name],\\n\\n[Paragraph 1: Reference their work]\\n\\n[Paragraph 2: Candidate relevant experience]\\n\\n[Paragraph 3: Request chat]\\n\\nBest regards,\\n[Candidate Name]"\n'
             "  }\n"
             "]\n\n"
-            "Copy name, title, linkedin, email exactly. Only create linkedin_note and cold_email."
+            "IMPORTANT:\n"
+            "- Copy name, title, linkedin, email EXACTLY as provided\n"
+            "- Add linkedin_profile_summary and connection_points based on scraped data\n"
+            "- Create personalized linkedin_note and cold_email using the research\n"
+            "- Return ONLY the JSON array, no markdown formatting\n"
         ),
         agent=agent
     )
